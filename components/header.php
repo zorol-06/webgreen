@@ -25,13 +25,17 @@
             <i class="bx bx-list-plus" id="menu-btn" style="font-size: 2rem ;"></i>
         </div>
        <div class="user-box">
-            <p>username : <span><?php echo $_SESSION['user_name']; ?></span></p>
-            <p>Email : <span><?php echo $_SESSION['user_email']; ?></span></p>
-            <a href="login.php" class="btn">login</a>
-            <a href="register.php" class="btn">register</a>
-            <form method="post">
-                <button type="submit" name="logout" class="logout-btn">log out</button>
-            </form>
-        </div> 
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <p>Username : <span><?= htmlspecialchars($_SESSION['user_name']); ?></span></p>
+        <p>Email : <span><?= htmlspecialchars($_SESSION['user_email']); ?></span></p>
+        <form method="post">
+            <button type="submit" name="logout" class="logout-btn">Log out</button>
+        </form>
+    <?php else: ?>
+        <a href="login.php" class="btn">Login</a>
+        <a href="register.php" class="btn">Register</a>
+    <?php endif; ?>
+</div>
+
     </div>
 </header>

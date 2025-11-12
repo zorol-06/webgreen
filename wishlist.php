@@ -34,23 +34,22 @@ if (isset($_POST['add_to_cart'])) {
     }
 }
 
-    //delete item from wishlist
-    if(isset($_POST['delete_item'])){
-        $wishlist_id = $_POST['wishlist_id'];
-        $wishlist_id = filter_var($wishlist_id,FILTER_SANITIZE_STRING);
+//delete item from wishlist
+if (isset($_POST['delete_item'])) {
+    $wishlist_id = $_POST['wishlist_id'];
+    $wishlist_id = filter_var($wishlist_id, FILTER_SANITIZE_STRING);
 
-        $varify_delete_items = $conn->prepare("SELECT * FROM wishlist WHERE id =?");
-        $varify_delete_items->execute([$wishlist_id]);
+    $varify_delete_items = $conn->prepare("SELECT * FROM wishlist WHERE id =?");
+    $varify_delete_items->execute([$wishlist_id]);
 
-        if($varify_delete_items->rowCount() > 0){
-            $delete_wishlist_id = $conn->prepare("DELETE FROM wishlist WHERE id =?");
-            $delete_wishlist_id->execute([$wishlist_id]);
-            $success_msg[]="wishlist item delete successfully";
-        }else{
-            $warning_msg[]='wishlist item already delete';
-        }
-   
+    if ($varify_delete_items->rowCount() > 0) {
+        $delete_wishlist_id = $conn->prepare("DELETE FROM wishlist WHERE id =?");
+        $delete_wishlist_id->execute([$wishlist_id]);
+        $success_msg[] = "wishlist item delete successfully";
+    } else {
+        $warning_msg[] = 'wishlist item already delete';
     }
+}
 
 ?>
 <style type="text/css">
@@ -75,7 +74,7 @@ if (isset($_POST['add_to_cart'])) {
         <div class="title2">
             <a href="home.php">home </a><span>/ wishlist</span>
         </div>
-         <section class="products">
+        <section class="products">
             <h1 class="title">product added in wishlist</h1>
             <div class="box-container">
                 <?php
@@ -89,24 +88,24 @@ if (isset($_POST['add_to_cart'])) {
                         $select_products->execute([$fetch_wishlist['product_id']]);
                         if ($select_products->rowCount() > 0) {
                             $fetch_products = $select_products->fetch(PDO::FETCH_ASSOC);
-                            ?>
+                ?>
                             <form method="post" action="" class="box">
-                                <input type="hidden" name="wishlist_id" value="<?=$fetch_wishlist['id']; ?>">
-                                <img src="img/<?=$fetch_products['image'];?>" >
+                                <input type="hidden" name="wishlist_id" value="<?= $fetch_wishlist['id']; ?>">
+                                <img src="img/<?= $fetch_products['image']; ?>">
                                 <div class="button">
                                     <button type="submit" name="add_to_cart"><i class="bx bx-cart"></i></button>
-                                    <a href="view_page.php?pid=<?=$fetch_products['id'];?>" class="bx bxs-show"></a>
+                                    <a href="view_page.php?pid=<?= $fetch_products['id']; ?>" class="bx bxs-show"></a>
                                     <button type="submit" name="delete_item" onclick="return confirm('delete this item');"><i class="bx bx-x"></i></button>
                                 </div>
-                                <h3 class="name"><?=$fetch_products['name']; ?></h3>
-                                <input type="hidden" name="product_id" value="<?=$fetch_products['id']; ?>">
+                                <h3 class="name"><?= $fetch_products['name']; ?></h3>
+                                <input type="hidden" name="product_id" value="<?= $fetch_products['id']; ?>">
                                 <div class="flex">
-                                    <p class="price">price <?=$fetch_products['price']; ?>/-</p>
+                                    <p class="price">price <?= $fetch_products['price']; ?>/-</p>
                                 </div>
-                                <a href="checkout.php?get_id=<?=$fetch_products['id'];?>" class="btn">buy now</a>
+                                <a href="checkout.php?get_id=<?= $fetch_products['id']; ?>" class="btn">buy now</a>
                             </form>
-                            <?php
-                            $grand_total+=$fetch_wishlist['price'];
+                <?php
+                            $grand_total += $fetch_wishlist['price'];
                         }
                     }
                 } else {
@@ -114,11 +113,11 @@ if (isset($_POST['add_to_cart'])) {
                 }
                 ?>
             </div>
-        </div>
-      
-       </section>
+    </div>
 
-        <?php include 'components/footer.php'; ?>
+    </section>
+
+    <?php include 'components/footer.php'; ?>
     </div>
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>

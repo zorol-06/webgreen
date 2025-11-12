@@ -59,7 +59,7 @@
         </div>
     </div>
     <div class="bottom-footer">
-        <p>&copy; 2025 All Rights Reserved | Code with Selena</p>
+        <p>&copy; 2025 All Rights Reserved | Code with Team </p>
     </div>
     </div>
 </footer>

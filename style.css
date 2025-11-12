@@ -852,6 +852,302 @@ min-height: 50vh;
 .cart-total .button .btn{
     margin: 1rem;
 }
+/*****checkout page****/
+.checkout .row {
+    display: flex;
+    flex-direction: column;
+}
+
+.checkout .row form,
+.checkout .summary {
+    box-shadow: var(--box-shadow);
+    border-radius: .5rem;
+    width: 100%;
+    max-width: 1000px;
+    padding: 1rem;
+    margin: 1rem auto;
+}
+
+.checkout h3 {
+    font-size: 2rem;
+    color: var(--green);
+    padding-bottom: 1rem;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+.checkout .row form .input {
+    width: 100%;
+    box-shadow: var(--box-shadow);
+    padding: 1rem;
+    color: #000;
+    font-size: 1.1rem;
+    margin: 1rem 0; 
+}
+
+.checkout .row form .flex {
+    display: flex;
+    column-gap: 1.5rem;
+    flex-wrap: wrap;
+} 
+
+.checkout .row form .flex .box {
+    flex: 1 1 30rem;
+}
+
+.checkout .row form p {
+    padding-top: 1rem;
+    font-size: 1.3rem;
+    color: #555;
+    text-transform: capitalize;
+}
+.checkout .row form p span {
+    color: red;
+}
+.checkout .row form .btn {
+    width: 100%;
+}
+
+.summary .title {
+    font-size: 2.2rem;
+    color: #000;
+    margin-bottom: .5rem;
+    text-transform: capitalize;
+    padding-bottom: 1.5rem;
+}
+
+.summary .flex {
+    box-shadow: var(--box-shadow);
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 1rem;
+    gap: 1rem;
+    margin: .4rem;
+}
+
+.summary .flex img {
+    box-shadow: var(--box-shadow);
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    padding: .4rem;
+}
+
+.summary .flex .name {
+    font-size: 1.1rem;
+    padding-bottom: .5rem;
+    text-transform: capitalize;
+    color: #000;
+}
+
+.summary .flex .price {
+    font-size: 1.5rem;
+    color: red;
+}
+
+.summary .grand-total {
+    box-shadow: var(--box-shadow);
+    border-radius: .5rem;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 2rem;
+    margin-top: 1.5rem;
+    text-transform: capitalize;
+}
+.summary .grand-total span {
+    color: #555;
+}
+.summary .grand-total p {
+    color: red;
+}
+/*****view products*****/
+.orders .box-container{
+ padding: 2% 6%;
+ grid-template-columns: repeat(auto-fit, minmax(20rem,1fr));
+ align-items: flex-start;
+ justify-content: center;
+ gap: 1.5rem;   
+}
+.orders .box-container .box{
+    box-shadow: var(--box-shadow);
+    border-radius: .5rem;
+    position:relative;
+    overflow-x: hidden;
+}
+.orders .box-container .box a{
+    display: flex;
+    align-items: center;
+}
+.orders .box-container .box a .row{
+    position: absolute;
+    right: 1%;
+} 
+.orders .box-container .box .date{
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: .5rem 1.5rem;
+    background: var(--box-shadow);
+    font-size: .6rem;
+    display: inline-block;
+    margin-bottom: 1.1rem;
+    border-radius: .5rem;
+}
+.orders .box-container .box .img{
+    height: 20rem;
+    width: 100%;
+    object-fit: contain;
+}
+.orders .box-container .box .name{
+    font-size: 1rem;
+    text-transform: capitalize;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    color: #000;
+}
+.orders .box-container .box .price{
+    color: orange;
+    font-size: 1rem;
+}
+.orders .box-container .box .status{
+    margin-left:.5rem ;
+    font-size: 1rem;
+    text-transform: capitalize;
+}
+.orders .box-container .box:hover{
+    box-shadow: var(--green);
+}
+/*****view order section*****/
+.order-detail .title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.order-detail .title .logo {
+    display: block;
+    margin: 0 auto 1rem auto;
+    width: 100px;
+    height: auto;
+}
+.order-detail .title h1 {
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: .5rem;
+    text-transform: capitalize;
+}
+.order-detail .title p {
+    font-size: 1.1rem;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.order-detail .box-container {
+    box-shadow: var(--box-shadow);
+    border-radius: .5rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 1rem auto;
+}
+
+.order-detail .box-container .box {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: nowrap; /* không xuống dòng, hiển thị ngang */
+    align-items: flex-start;
+    overflow-x: auto;  /* cuộn ngang nếu màn nhỏ */
+}
+
+.order-detail .box-container .box .col {
+    flex: 1 1 30rem;
+    font-size: 1rem;
+    min-width: 400px;
+}
+
+.order-detail .box-container .box .col .img {
+    height: 17rem;
+    width: 100%;
+    object-fit: contain;
+    margin: 1rem 0;
+}
+
+.order-detail .box-container .box .col .title {
+    border-radius: .5rem;
+    margin-bottom: 1rem;
+    padding: .5rem 2rem;
+    font-size: 1rem;
+    color: var(--green);
+    background: var(--light-green);
+    border: 2px solid var(--green);
+    display: inline-block;
+    text-transform: capitalize;
+}
+
+.order-detail .box-container .box .col .title i {
+    margin-right: 1rem;
+    color: #000;
+}
+
+.order-detail .box-container .box .col .price {
+    color: crimson;
+    font-size: 1rem;
+    padding: .5rem 0;
+    margin-top: -3rem;
+}
+
+.order-detail .box-container .box .col .name {
+    font-size: 1.5rem;
+    color: #000;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+}
+
+.order-detail .box-container .box .col .user {
+    padding: .5rem 0;
+    font-size: 1.3rem;
+    color: #000;
+}
+
+.order-detail .box-container .box .col .user i {
+    margin-right: 1rem;
+    color: gray;
+}
+
+.order-detail .box-container .box .col .grand-total {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: .5rem;
+    flex-wrap: wrap;
+    background: var(--light-green);
+    font-size: 1.5rem;
+    color: var(--green);
+    border: 1px solid var(--green);
+    border-radius: .5rem;
+    text-transform: capitalize;
+}
+
+.order-detail .box-container .box .col .grand-total span {
+    color: orange;
+}
+
+.order-detail .box-container .box .col .status {
+    font-size: 1.4rem;
+    padding: .5rem 0;
+    text-transform: capitalize;
+}
+
+.order-detail .box-container .box .col .btn {
+    width: 100%;
+    border: 1px solid var(--green);
+    border-radius: .5rem;
+}
+
 /*****footer*****/
 .top-footer{
     width:100%;
