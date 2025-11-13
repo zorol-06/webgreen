@@ -2,28 +2,32 @@
 include 'components/connection.php';
 session_start();
 
+// 🔹 Kiểm tra đăng nhập
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
 } else {
-    $user_id = '';
+    header("Location: login.php");
+    exit;
 }
 
+// 🔹 Đăng xuất
 if (isset($_POST['logout'])) {
     session_destroy();
-    header("location: login.php");
+    header("Location: login.php");
     exit;
 }
 ?>
+
 <style type="text/css">
   <?php include 'style.css'; ?>
 </style>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Green Coffee - Order Page</title>
+  <title>Green Coffee - Đơn hàng của tôi</title>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 
@@ -32,71 +36,65 @@ if (isset($_POST['logout'])) {
 
   <div class="main">
     <div class="banner">
-      <h1>Shop</h1>
+      <h1>Đơn hàng của tôi</h1>
     </div>
 
     <div class="title2">
-      <a href="home.php">Home</a><span> / My Orders</span>
+      <a href="home.php">Trang chủ</a><span> / Đơn hàng của tôi</span>
     </div>
 
     <section class="orders">
       <div class="box-container">
-        <div class="title">
-          <img src="img/download.png" alt="" class="logo">
-          <h1>My Orders</h1>
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit...</p>
+        <?php
+        // 🔹 Lấy tất cả đơn hàng của người dùng hiện tại
+        $select_orders = $conn->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC");
+        $select_orders->execute([$user_id]);
+
+        if ($select_orders->rowCount() > 0) {
+            while ($fetch_order = $select_orders->fetch(PDO::FETCH_ASSOC)) {
+                // 🔹 Lấy thông tin sản phẩm tương ứng - Sửa logic: Fallback nếu product không tồn tại
+                $select_product = $conn->prepare("SELECT * FROM products WHERE id = ? LIMIT 1");
+                $select_product->execute([$fetch_order['product_id']]);
+                $fetch_product = $select_product->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$fetch_product) {
+                    $fetch_product = ['name' => 'Sản phẩm không xác định', 'image' => 'default.jpg']; // Fallback dựa trên DB
+                }
+        ?>
+        <div class="box">
+          <img src="img/<?= $fetch_product['image']; ?>" alt="">
+          <h3><?= $fetch_product['name']; ?></h3>
+          <p>Số lượng: <span><?= $fetch_order['qty']; ?></span></p>
+          <p>Giá: <span>$<?= number_format($fetch_order['price']); ?></span></p> <!-- 🔹 Sửa: Format price để dễ đọc (ví dụ: 1000 → 1,000) -->
+          <p>Ngày đặt: <span><?= date('d/m/Y H:i', strtotime($fetch_order['date'])); ?></span></p> <!-- 🔹 Sửa: Format date readable (từ DB datetime raw) -->
+          <p>Trạng thái: 
+            <span style="color:<?php 
+              if ($fetch_order['status'] == 'delivered') echo 'green';
+              elseif ($fetch_order['status'] == 'canceled') echo 'red';
+              else echo 'orange';
+            ?>">
+              <?php 
+                if ($fetch_order['status'] == 'delivered') echo 'Đã giao hàng';
+                elseif ($fetch_order['status'] == 'canceled') echo 'Đã hủy';
+                else echo 'Đang xử lý';
+              ?>
+            </span>
+          </p>
+
+          <a href="order.php?get_id=<?= $fetch_order['id']; ?>" class="btn">Xem chi tiết</a>
         </div>
-
-        <div class="box-container">
-          <?php
-          $select_orders = $conn->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY date DESC");
-          $select_orders->execute([$user_id]);
-
-          if ($select_orders->rowCount() > 0) {
-              while ($fetch_orders = $select_orders->fetch(PDO::FETCH_ASSOC)) {
-                  $select_products = $conn->prepare("SELECT * FROM products WHERE id = ?");
-                  $select_products->execute([$fetch_orders['product_id']]);
-
-                  if ($select_products->rowCount() > 0) {
-                      while ($fetch_products = $select_products->fetch(PDO::FETCH_ASSOC)) {
-          ?>
-          <div class="box" <?php if($fetch_orders['status']=="canceled"){echo 'style="border:2px solid red;"';}?>>
-            <a href="view_order.php?get_id=<?= $fetch_orders['id']; ?>">
-              <p class="date"><i class="bi bi-calendar-fill"></i><span><?= $fetch_orders['date']; ?></span></p>
-              <img src="img/<?= $fetch_products['image']; ?>" class="img" alt="">
-              <div class="row">
-                <h3 class="name"><?= $fetch_products['name']; ?></h3>
-                <p class="price">Price: $<?= $fetch_orders['price']; ?> x <?= $fetch_orders['qty']; ?></p>
-                <p class="status" style="color:<?php 
-                    if($fetch_orders['status']=='delivered'){
-                        echo 'green';
-                    } elseif($fetch_orders['status']=='canceled'){
-                        echo 'red';
-                    } else {
-                        echo 'orange';
-                    } ?>">
-                  <?= ucfirst($fetch_orders['status']); ?>
-                </p>
-              </div>
-            </a>
-          </div>
-          <?php
-                      }
-                  }
-              }
-          } else {
-              echo '<p class="empty">No orders have been placed yet!</p>';
-          }
-          ?>
-        </div>
+        <?php
+            }
+        } else {
+            echo '<p class="empty">Bạn chưa có đơn hàng nào.</p>';
+        }
+        ?>
       </div>
     </section>
 
     <?php include 'components/footer.php'; ?>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
   <script src="script.js"></script>
-  <?php include 'components/alert.php'; ?>
 </body>
 </html>

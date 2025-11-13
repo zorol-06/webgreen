@@ -1,8 +1,8 @@
 <div class="top-footer">
-    <h2><i class="bx bx-envelope"></i>Sign Up For Newslatter</h2>
+    <h2><i class="bx bx-envelope"></i>Đăng Ký Nhận Bản Tin</h2>
     <div class="input-field">
-        <input type="text" name="" placeholder="email address...">
-        <button class="btn">subscribe</button>
+        <input type="text" name="" placeholder="nhập địa chỉ email...">
+        <button class="btn">đăng ký</button>
     </div>
 </div>
 <footer>
@@ -13,53 +13,52 @@
         </div>
         <div class="inner-footer">
             <div class="card">
-                <h3>about us</h3>
+                <h3>về chúng tôi</h3>
                 <ul>
-                    <li>about us</li>
-                    <li>our difference</li>
-                    <li>community matters</li>
-                    <li>press</li>
+                    <li>về chúng tôi</li>
+                    <li>sự khác biệt của chúng tôi</li>
+                    <li>cộng đồng quan trọng</li>
+                    <li>báo chí</li>
                     <li>blog</li>
-                    <li>bouqs video</li>
+                    <li>video bouqs</li>
                 </ul>
             </div>
             <div class="card">
-                <h3>services</h3>
+                <h3>dịch vụ</h3>
                 <ul>
-                    <li>order</li>
-                    <li>help center</li>
-                    <li>shipping</li>
-                    <li>term of use</li>
-                    <li>account detail</li>
-                    <li>my account</li>
+                    <li><a href="order.php">đặt hàng</a></li>
+                    <li><a href="contact.php">trung tâm trợ giúp</a></li>
+                    <li><a href="contact.php">vận chuyển</a></li>
+                    <li><a href="terms.php">điều khoản sử dụng</a></li>
+                    <li><a href="profile.php">chi tiết tài khoản</a></li>
+                    <li><a href="account.php">tài khoản của tôi</a></li>
                 </ul>
             </div>
             <div class="card">
-                <h3>local</h3>
+                <h3>địa phương</h3>
                 <ul>
-                    <li>allahabad</li>
-                    <li>mumbai</li>
-                    <li>new delhi</li>
-                    <li>old delhi</li>
-                    <li>new yourk</li>
-                    <li>los angeless</li>
+                    <li>Đà Nẵng</li>
+                    <li>Huế</li>
+                    <li>Hà Nội</li>
+                    <li>TP Hồ Chí Minh</li>
+                    <li>Hà Tĩnh</li>
+                    <li>Hải Phòng</li>
                 </ul>
             </div>
             <div class="card">
-                <h3>newslatter</h3>
-                <p>Sign Up For Newslatter</p>
+                <h3>bản tin</h3>
+                <p>Theo dõi chúng tôi qua</p>
                 <div class="social-links">
-                    <i class="bx bxl-instagram"></i>
-                    <i class="bx bxl-twitter"></i>
-                    <i class="bx bxl-behance"></i>
-                    <i class="bx bxl-youtube"></i>
-                    <i class="bx bxl-whatsapp"></i>
+                    <a href="https://instagram.com" target="_blank"><i class="bx bxl-instagram"></i></a>
+                    <a href="https://twitter.com" target="_blank"><i class="bx bxl-twitter"></i></a>
+                    <a href="https://behance.net" target="_blank"><i class="bx bxl-behance"></i></a>
+                    <a href="https://youtube.com" target="_blank"><i class="bx bxl-youtube"></i></a>
+                    <a href="https://wa.me" target="_blank"><i class="bx bxl-whatsapp"></i></a>
                 </div>
             </div>
         </div>
     </div>
     <div class="bottom-footer">
-        <p>&copy; 2025 All Rights Reserved | Code with Team </p>
-    </div>
+        <p>&copy; 2025 All Rights Reserved | Code with Team </p> 
     </div>
 </footer>

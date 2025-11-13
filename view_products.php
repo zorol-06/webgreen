@@ -30,17 +30,22 @@ if (isset($_POST['add_to_wishlist'])) {
     $verify_cart->execute([$user_id, $product_id]);
 
     if ($verify_wishlist->rowCount() > 0) {
-        $warning_msg[] = 'Product already exists in your wishlist';
+        $warning_msg[] = 'Sản phẩm đã có trong danh sách yêu thích';
     } elseif ($verify_cart->rowCount() > 0) {
-        $warning_msg[] = 'Product already exists in your cart';
+        $warning_msg[] = 'Sản phẩm đã có trong giỏ hàng';
     } else {
-        $select_price = $conn->prepare("SELECT * FROM products WHERE id = ? LIMIT 1");
+        // 🔹 Sửa: Kiểm tra sản phẩm tồn tại trước khi lấy giá
+        $select_price = $conn->prepare("SELECT price FROM products WHERE id = ? AND status = 'active' LIMIT 1");
         $select_price->execute([$product_id]);
-        $fetch_price = $select_price->fetch(PDO::FETCH_ASSOC);
+        if ($select_price->rowCount() > 0) {
+            $fetch_price = $select_price->fetch(PDO::FETCH_ASSOC);
 
-        $insert_wishlist = $conn->prepare("INSERT INTO wishlist (user_id, product_id, price) VALUES (?, ?, ?)");
-        $insert_wishlist->execute([$user_id, $product_id, $fetch_price['price']]);
-        $success_msg[] = 'Product added to wishlist successfully';
+            $insert_wishlist = $conn->prepare("INSERT INTO wishlist (user_id, product_id, price) VALUES (?, ?, ?)");
+            $insert_wishlist->execute([$user_id, $product_id, $fetch_price['price']]);
+            $success_msg[] = 'Đã thêm sản phẩm vào danh sách yêu thích thành công';
+        } else {
+            $warning_msg[] = 'Sản phẩm không tồn tại!';
+        }
     }
 }
 
@@ -63,17 +68,22 @@ if (isset($_POST['add_to_cart'])) {
     $count_items = $max_cart_items->fetchColumn();
 
     if ($verify_cart->rowCount() > 0) {
-        $warning_msg[] = 'Product already exists in your cart';
+        $warning_msg[] = 'Sản phẩm đã có trong giỏ hàng';
     } elseif ($count_items >= 20) {
-        $warning_msg[] = 'Your cart is full (maximum 20 items)';
+        $warning_msg[] = 'Giỏ hàng của bạn đã đầy (tối đa 20 sản phẩm)';
     } else {
-        $select_price = $conn->prepare("SELECT * FROM products WHERE id = ? LIMIT 1");
+        // 🔹 Sửa: Kiểm tra sản phẩm tồn tại trước khi lấy giá
+        $select_price = $conn->prepare("SELECT price FROM products WHERE id = ? AND status = 'active' LIMIT 1");
         $select_price->execute([$product_id]);
-        $fetch_price = $select_price->fetch(PDO::FETCH_ASSOC);
+        if ($select_price->rowCount() > 0) {
+            $fetch_price = $select_price->fetch(PDO::FETCH_ASSOC);
 
-        $insert_cart = $conn->prepare("INSERT INTO cart (user_id, product_id, price, qty) VALUES (?, ?, ?, ?)");
-        $insert_cart->execute([$user_id, $product_id, $fetch_price['price'], $qty]);
-        $success_msg[] = 'Product added to cart successfully';
+            $insert_cart = $conn->prepare("INSERT INTO cart (user_id, product_id, price, qty) VALUES (?, ?, ?, ?)");
+            $insert_cart->execute([$user_id, $product_id, $fetch_price['price'], $qty]);
+            $success_msg[] = 'Đã thêm sản phẩm vào giỏ hàng thành công';
+        } else {
+            $warning_msg[] = 'Sản phẩm không tồn tại!';
+        }
     }
 }
 ?>
@@ -82,11 +92,11 @@ if (isset($_POST['add_to_cart'])) {
 </style>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Green Coffee - Shop Page</title>
+  <title>Green Coffee - Trang cửa hàng</title>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 
@@ -95,23 +105,24 @@ if (isset($_POST['add_to_cart'])) {
 
   <div class="main">
     <div class="banner">
-      <h1>Shop</h1>
+      <h1>Cửa hàng</h1>
     </div>
 
     <div class="title2">
-      <a href="home.php">Home</a><span> / Our Shop</span>
+      <a href="home.php">Trang chủ</a><span> / Cửa hàng của chúng tôi</span>
     </div>
 
     <section class="products">
       <div class="box-container">
         <?php
-        $select_products = $conn->prepare("SELECT * FROM products");
+        // 🔹 Sửa: Lọc sản phẩm active để chỉ hiển thị sản phẩm khả dụng
+        $select_products = $conn->prepare("SELECT * FROM products WHERE status = 'active'");
         $select_products->execute();
         if ($select_products->rowCount() > 0) {
           while ($fetch_products = $select_products->fetch(PDO::FETCH_ASSOC)) {
         ?>
         <form action="" method="post" class="box">
-          <img src="img/<?= $fetch_products['image'] ?>" class="img">
+          <img src="img/<?= htmlspecialchars($fetch_products['image']); ?>" class="img" alt="<?= htmlspecialchars($fetch_products['name']); ?>">
 
           <div class="button">
             <button type="submit" name="add_to_cart"><i class="bx bx-cart"></i></button>
@@ -123,16 +134,16 @@ if (isset($_POST['add_to_cart'])) {
           <input type="hidden" name="product_id" value="<?= $fetch_products['id']; ?>">
 
           <div class="flex">
-            <p class="price">Price $<?= $fetch_products['price']; ?>/-</p>
+            <p class="price">Giá $<?= number_format($fetch_products['price']); ?>/-</p>
             <input type="number" name="qty" min="1" max="99" value="1" class="qty">
           </div>
 
-          <a href="checkout.php?get_id=<?= $fetch_products['id']; ?>" class="btn">Buy Now</a>
+          <a href="checkout.php?get_id=<?= $fetch_products['id']; ?>" class="btn">Mua ngay</a>
         </form>
         <?php
           }
         } else {
-          echo '<p class="empty">No products added yet!</p>';
+          echo '<p class="empty">Chưa có sản phẩm nào!</p>';
         }
         ?>
       </div>

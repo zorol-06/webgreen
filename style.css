@@ -295,7 +295,7 @@ header.scrolled{
     background-image:url('img/slider.jpg') ;
 }
 .slider2{
-    background-image:url('img/1.jpg') ;
+    background-image:url('img/1.png') ;
 }
 .slider3{
     background-image:url('img/9.jpg') ;
@@ -806,51 +806,105 @@ min-height: 50vh;
 .products .cart-total p span {
     color: var(--green);
 }
+/* ====================== FIX ẢNH WISHLIST HIỆN NHƯ ORDERS (THÊM VÀO CUỐI STYLE.CSS) ====================== */
+.products .box img {
+    height: 20rem; /* Giống orders: Chiều cao cố định 20rem */
+    width: 100%; /* Full width card */
+    object-fit: contain; /* Giống orders: Fit hình mà không crop/méo */
+    padding: 0; /* Không padding để sát viền card */
+    margin: 0; /* Không margin thừa */
+    border-radius: 0; /* Giữ nguyên nếu card có border-radius */
+    transition: transform 0.3s ease; /* Hover mượt như orders */
+}
+
+.products .box:hover img {
+    transform: scale(1.02); /* Zoom nhẹ khi hover, giống orders hover effect */
+}
+
+/* Responsive: Giữ height nhỏ hơn trên mobile */
+@media (max-width: 768px) {
+    .products .box img {
+        height: 15rem; /* Giảm xuống trên mobile để không vỡ */
+    }
+}
 /*****view_product*****/
-.view_page{
+.view_page {
     padding: 5% 8%;
     background-image: url('img/bg.jpg');
+    background-size: cover;
+    background-position: center;
 }
-.view_page form{
+
+.view_page form {
     display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(35px,1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 🔹 Căn chỉnh: Tăng min-width từ 35px lên 300px để hình ảnh và chi tiết rộng hơn, hợp lý cho desktop/mobile */
+    gap: 2rem; /* 🔹 Thêm gap để khoảng cách giữa cột đẹp hơn */
     justify-content: center;
-    align-items: center;
+    align-items: start; /* 🔹 Thay center thành start để align top, tránh center làm lệch */
     box-shadow: var(--box-shadow);
     background: #fff;
-    margin-left: 1rem;
-    padding: 1.5rem;
+    margin: 0 auto; /* 🔹 Căn giữa form, bỏ margin-left 1rem cố định */
+    max-width: 1200px; /* 🔹 Giới hạn width để không quá rộng trên màn lớn */
+    padding: 2rem; /* 🔹 Tăng padding từ 1.5rem cho thoáng hơn */
+    border-radius: 10px; /* 🔹 Thêm border-radius cho bo góc đẹp */
 }
-.view_page form img{
-    padding: .5rem;
+
+.view_page form img {
+    width: 100%; /* 🔹 Responsive: Hình full width trong grid cell */
+    height: auto; /* 🔹 Giữ tỷ lệ hình */
+    max-height: 400px; /* 🔹 Giới hạn chiều cao để không quá lớn */
+    object-fit: cover; /* 🔹 Fit hình đẹp */
+    padding: 1rem; /* 🔹 Tăng padding từ 0.5rem cho hình nổi bật */
     box-shadow: var(--box-shadow);
+    border-radius: 10px; /* 🔹 Bo góc hình */
 }
-.view_page form .name{
-    font-size: 2rem;
+
+.view_page form .name {
+    font-size: 2.5rem; /* 🔹 Tăng font từ 2rem cho nổi bật hơn */
     text-transform: capitalize;
     color: var(--green);
+    margin-bottom: 0.5rem; /* 🔹 Thêm margin dưới */
 }
-.view_page form .price{
-    font-size: 24px;
-    line-height: 1;
+
+.view_page form .price {
+    font-size: 28px; /* 🔹 Tăng từ 24px cho giá nổi bật */
+    line-height: 1.2; /* 🔹 Tăng line-height nhẹ cho dễ đọc */
+    font-weight: bold; /* 🔹 Thêm bold cho giá */
+    color: var(--green); /* 🔹 Màu xanh để khớp theme */
+    margin-bottom: 1rem; /* 🔹 Thêm margin dưới */
 }
-.view_page form .detail{
+
+.view_page form .detail {
     font-size: 16px;
     color: gray;
-    line-height: 2;
-    margin-bottom: .5rem;
+    line-height: 1.6; /* 🔹 Giảm từ 2 để chặt chẽ hơn */
+    margin-bottom: 1.5rem; /* 🔹 Tăng margin dưới từ 0.5rem */
+    text-align: justify; /* 🔹 Căn đều text cho chuyên nghiệp */
 }
-.view_page .btn{
+
+.view_page .btn {
     background: var(--light-green);
     cursor: pointer;
+    padding: 1rem 2rem; /* 🔹 Thêm padding cho nút rộng hơn */
+    border-radius: 5px; /* 🔹 Bo góc nút */
+    transition: background 0.3s ease; /* 🔹 Hover effect mượt */
 }
-.cart-total .button{
+
+.view_page .btn:hover {
+    background: var(--green); /* 🔹 Hover đổi màu đậm hơn */
+    color: white;
+}
+
+.cart-total .button {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 1rem; /* 🔹 Thêm gap giữa buttons */
+    margin-top: 1rem; /* 🔹 Thêm margin trên */
 }
-.cart-total .button .btn{
-    margin: 1rem;
+
+.cart-total .button .btn {
+    margin: 0; /* 🔹 Bỏ margin cũ, dùng gap thay */
 }
 /*****checkout page****/
 .checkout .row {
@@ -1292,5 +1346,22 @@ footer .bottom-footer{
     }
     form{
         width: 100%;
+    }
+}
+/* Fix Màu Chữ Phần Dịch Vụ Footer (Trắng + Hover Underline) */
+footer .inner-footer .card ul a {
+    color: #fff !important;
+    text-decoration: none; /* Không gạch chân mặc định */
+}
+
+footer .inner-footer .card ul a:hover {
+    text-decoration: underline !important; /* Gạch chân khi hover */
+    color: #fff !important; /* Giữ trắng, hoặc đổi var(--green) nếu muốn màu xanh */
+}
+
+/* Responsive: Links footer nhỏ hơn trên mobile */
+@media (max-width: 768px) {
+    footer .inner-footer .card ul a {
+        font-size: 0.9rem;
     }
 }
