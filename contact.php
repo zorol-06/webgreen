@@ -32,9 +32,9 @@ if(isset($_POST['submit-btn'])) {
     
     // Validation nâng cao
     if(empty($name) || empty($email) || empty($subject) || empty($message)) {
-        $message_alert = '<div class="message error"><span>click close to remove</span>All fields are required!</div>';  // Thêm class error cho CSS
+        $message_alert = '<div class="message error"><span>click close to remove</span>Tất cả các trường đều bắt buộc!</div>';  // Thêm class error cho CSS
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message_alert = '<div class="message error"><span>click close to remove</span>Invalid email format!</div>';
+        $message_alert = '<div class="message error"><span>click close to remove</span>Định dạng email không hợp lệ!</div>';
     } else {
         try {
             // Prepared statement với PDO: An toàn tuyệt đối chống SQL injection
@@ -48,10 +48,10 @@ if(isset($_POST['submit-btn'])) {
                 ':message' => $message
             ]);
             
-            $message_alert = '<div class="message success"><span>click close to remove</span>Message sent successfully!</div>';
+            $message_alert = '<div class="message success"><span>click close to remove</span>Tin nhắn đã được gửi thành công!</div>';
             $_POST = array();  // Reset form
         } catch (PDOException $e) {
-            $message_alert = '<div class="message error"><span>click close to remove</span>Error executing query: ' . $e->getMessage() . '</div>';
+            $message_alert = '<div class="message error"><span>click close to remove</span>Lỗi thực thi truy vấn: ' . $e->getMessage() . '</div>';
         }
     }
 }
@@ -64,51 +64,51 @@ if(isset($_POST['submit-btn'])) {
   .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 </style>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Green Coffee - Contact Us</title>
+  <title>Green Coffee - Liên hệ với chúng tôi</title>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
   <?php include 'components/header.php'; ?>
   <div class="main">
     <div class="banner">
-        <h1>contact us</h1>
+        <h1>liên hệ với chúng tôi</h1>
     </div>
     <div class="title2">
-    <a href="home.php">home</a><span>contact us</span>
+    <a href="home.php">trang chủ</a><span>liên hệ với chúng tôi</span>
     </div>
       <section class="services">
         <div class="box-container">
         <div class="box">
         <img src="img/icon2.png">
         <div class="detail">
-        <h3>great savings</h3>
-        <p>save big every order</p>
+        <h3>tiết kiệm lớn</h3>
+        <p>tiết kiệm lớn mỗi đơn hàng</p>
         </div>
         </div>
          <div class="box">
         <img src="img/icon1.png">
         <div class="detail">
-        <h3>24*7 support</h3>
-        <p>one-on-one support</p>
+        <h3>hỗ trợ 24/7</h3>
+        <p>hỗ trợ cá nhân một-một</p>
         </div>
         </div>
          <div class="box">
         <img src="img/icon0.png">
         <div class="detail">
-        <h3>gift vouchers</h3>
-        <p>vouchers on every festivals</p>
+        <h3>phiếu quà tặng</h3>
+        <p>phiếu quà trên mọi lễ hội</p>
         </div>
         </div>
          <div class="box">
         <img src="img/icon.png">
         <div class="detail">
-        <h3>worldwide delivery</h3>
-        <p>dropship worldwide</p>
+        <h3>giao hàng toàn cầu</h3>
+        <p>giao hàng toàn thế giới</p>
         </div>
         </div>
         </div>
@@ -118,53 +118,53 @@ if(isset($_POST['submit-btn'])) {
         <form method="post">
             <div class="title">
                 <img src="img/download.png" class="logo">
-                <h1>leave a message</h1>
+                <h1>để lại tin nhắn</h1>
             </div>
             <div class="input-field">
-                <p>your name <span class="required">*</span></p>
+                <p>tên của bạn <span class="required">*</span></p>
                 <input type="text" name="name" value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>" required>  <!-- Thêm required và htmlspecialchars cho an toàn -->
             </div>
               <div class="input-field">
-                <p>your email <span class="required">*</span></p>
+                <p>email của bạn <span class="required">*</span></p>
                 <input type="email" name="email" value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>" required>
             </div>
               <div class="input-field">
-                <p>subject <span class="required">*</span></p>
+                <p>chủ đề <span class="required">*</span></p>
                 <input type="text" name="subject" value="<?php echo isset($_POST['subject']) ? htmlspecialchars($_POST['subject']) : ''; ?>" required>  <!-- Giữ nguyên name="subject" -->
             </div>
               <div class="input-field">
-                <p>your message <span class="required">*</span></p>
+                <p>tin nhắn của bạn <span class="required">*</span></p>
                 <textarea name="message" required><?php echo isset($_POST['message']) ? htmlspecialchars($_POST['message']) : ''; ?></textarea>
             </div>
-             <button type="submit" name="submit-btn" class="btn">send message</button>
+             <button type="submit" name="submit-btn" class="btn">gửi tin nhắn</button>
         </form>
       </div>
        <div class="address">
         <div class="title">
            <img src="img/download.png" class="logo">
-            <h1>contact detail</h1>
-            <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit.</p>
+            <h1>thông tin liên hệ</h1>
+            <p></p>
         </div>
         <div class="box-container">
             <div class="box">
                 <i class="bx bxs-map-pin"></i>
                 <div>
-                    <h4>address</h4>
-                    <p>1092 Merigold Lane,Coral Way</p>
+                    <h4>địa chỉ</h4>
+                    <p>Hòa Quý,Ngũ Hành Sơn,Đà Nẵng</p>
                 </div>
             </div>
              <div class="box">
                 <i class="bx bxs-phone-call"></i>
                 <div>
-                    <h4>phone number</h4>
-                    <p>8866999955</p>
+                    <h4>số điện thoại</h4>
+                    <p>0336965264</p>
                 </div>
             </div>
              <div class="box">
                 <i class="bx bxs-envelope"></i>
                 <div>
                     <h4>email</h4>
-                    <p>selenaAnsari@gmail.com</p>
+                    <p>hoaiphm.24itb@vku.udn.vn</p>
                 </div>
             </div>
         </div>

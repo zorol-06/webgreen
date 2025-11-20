@@ -74,9 +74,9 @@ if (isset($_POST['logout'])) {
      <section class="services">
         <div class="title">
         <img src="img/download.png" class="logo" alt="Logo Green Coffee">
-        <h1>Tại Sao Chọn Chúng Tôi</h1>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecti dolorum deserunt minus veniam teneturn</p>
-        </div>
+       <h1>Tại Sao Chọn Chúng Tôi</h1>
+  <p>Trải nghiệm nhanh – dịch vụ tận tâm – chất lượng vượt trội.</p>
+
         <div class="box-container">
         <div class="box">
         <img src="img/icon2.png" alt="Tiết Kiệm Lớn">

@@ -52,32 +52,50 @@ if (isset($_POST['logout'])) {
 
         if ($select_orders->rowCount() > 0) {
             while ($fetch_order = $select_orders->fetch(PDO::FETCH_ASSOC)) {
-                // 🔹 Lấy thông tin sản phẩm tương ứng - Sửa logic: Fallback nếu product không tồn tại
+                // 🔹 Lấy thông tin sản phẩm tương ứng
                 $select_product = $conn->prepare("SELECT * FROM products WHERE id = ? LIMIT 1");
                 $select_product->execute([$fetch_order['product_id']]);
                 $fetch_product = $select_product->fetch(PDO::FETCH_ASSOC);
                 
                 if (!$fetch_product) {
-                    $fetch_product = ['name' => 'Sản phẩm không xác định', 'image' => 'default.jpg']; // Fallback dựa trên DB
+                    $fetch_product = ['name' => 'Sản phẩm không xác định', 'image' => 'default.jpg'];
+                }
+
+                // 🔹 Xác định trạng thái hiển thị dựa trên cả status và payment_status
+                $status_display = '';
+                $status_color = 'orange'; // Mặc định là màu cam (đang xử lý)
+                
+                if ($fetch_order['status'] == 'delivered' && $fetch_order['payment_status'] == 'complete') {
+                    $status_display = 'Đã giao hàng';
+                    $status_color = 'green';
+                } elseif ($fetch_order['status'] == 'canceled') {
+                    $status_display = 'Đã hủy';
+                    $status_color = 'red';
+                } elseif ($fetch_order['payment_status'] == 'complete' && $fetch_order['status'] == 'pending') {
+                    $status_display = 'Đã thanh toán - Đang giao hàng';
+                    $status_color = 'blue';
+                } elseif ($fetch_order['payment_status'] == 'pending' || $fetch_order['payment_status'] == 'unpaid') {
+                    $status_display = 'Đang xử lý';
+                    $status_color = 'orange';
+                } else {
+                    $status_display = 'Đang xử lý';
+                    $status_color = 'orange';
                 }
         ?>
         <div class="box">
           <img src="img/<?= $fetch_product['image']; ?>" alt="">
           <h3><?= $fetch_product['name']; ?></h3>
           <p>Số lượng: <span><?= $fetch_order['qty']; ?></span></p>
-          <p>Giá: <span>$<?= number_format($fetch_order['price']); ?></span></p> <!-- 🔹 Sửa: Format price để dễ đọc (ví dụ: 1000 → 1,000) -->
-          <p>Ngày đặt: <span><?= date('d/m/Y H:i', strtotime($fetch_order['date'])); ?></span></p> <!-- 🔹 Sửa: Format date readable (từ DB datetime raw) -->
+          <p>Giá: <span>$<?= number_format($fetch_order['price']); ?></span></p>
+          <p>Ngày đặt: <span><?= date('d/m/Y H:i', strtotime($fetch_order['date'])); ?></span></p>
           <p>Trạng thái: 
-            <span style="color:<?php 
-              if ($fetch_order['status'] == 'delivered') echo 'green';
-              elseif ($fetch_order['status'] == 'canceled') echo 'red';
-              else echo 'orange';
-            ?>">
-              <?php 
-                if ($fetch_order['status'] == 'delivered') echo 'Đã giao hàng';
-                elseif ($fetch_order['status'] == 'canceled') echo 'Đã hủy';
-                else echo 'Đang xử lý';
-              ?>
+            <span style="color: <?= $status_color; ?>; font-weight: bold;">
+              <?= $status_display; ?>
+            </span>
+          </p>
+          <p>Thanh toán: 
+            <span style="color: <?= ($fetch_order['payment_status'] == 'complete') ? 'green' : 'red'; ?>;">
+              <?= ($fetch_order['payment_status'] == 'complete') ? 'Đã thanh toán' : 'Chưa thanh toán'; ?>
             </span>
           </p>
 

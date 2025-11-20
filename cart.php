@@ -61,9 +61,281 @@ if (isset($_POST['empty_cart'])) {
         $warning_msg[] = 'Giỏ hàng đã trống';
     }
 }
+
+// 🧩 Áp dụng mã giảm giá
+if (isset($_POST['apply_coupon'])) {
+    $coupon_code = filter_var($_POST['coupon_code'], FILTER_SANITIZE_STRING);
+    
+    // Kiểm tra mã giảm giá trong database
+    $verify_coupon = $conn->prepare("SELECT * FROM coupons WHERE code = ? AND status = 'active' AND (expiry_date > NOW() OR expiry_date IS NULL)");
+    $verify_coupon->execute([$coupon_code]);
+    
+    if ($verify_coupon->rowCount() > 0) {
+        $coupon = $verify_coupon->fetch(PDO::FETCH_ASSOC);
+        
+        // Kiểm tra giới hạn sử dụng
+        if ($coupon['usage_limit'] !== null && $coupon['used_count'] >= $coupon['usage_limit']) {
+            $warning_msg[] = 'Mã giảm giá đã hết lượt sử dụng!';
+        } else {
+            $_SESSION['coupon'] = [
+                'id' => $coupon['id'],
+                'code' => $coupon['code'],
+                'discount_type' => $coupon['discount_type'],
+                'discount_value' => $coupon['discount_value'],
+                'min_order' => $coupon['min_order'],
+                'max_discount' => $coupon['max_discount']
+            ];
+            $success_msg[] = 'Áp dụng mã giảm giá thành công!';
+        }
+    } else {
+        $warning_msg[] = 'Mã giảm giá không hợp lệ hoặc đã hết hạn!';
+    }
+}
+
+// 🧩 Xóa mã giảm giá
+if (isset($_POST['remove_coupon'])) {
+    unset($_SESSION['coupon']);
+    $success_msg[] = 'Đã xóa mã giảm giá!';
+}
+
+// Tính tổng tiền và giảm giá
+$grand_total = 0;
+$discount = 0;
+$final_total = 0;
+
+$select_cart = $conn->prepare("SELECT * FROM cart WHERE user_id = ?");
+$select_cart->execute([$user_id]);
+
+if ($select_cart->rowCount() > 0) {
+    while ($fetch_cart = $select_cart->fetch(PDO::FETCH_ASSOC)) {
+        $select_products = $conn->prepare("SELECT * FROM products WHERE id = ? AND status = 'active'");
+        $select_products->execute([$fetch_cart['product_id']]);
+        
+        if ($select_products->rowCount() > 0) {
+            $fetch_products = $select_products->fetch(PDO::FETCH_ASSOC);
+            $sub_total = $fetch_cart['qty'] * $fetch_products['price'];
+            $grand_total += $sub_total;
+        }
+    }
+}
+
+// Tính toán giảm giá nếu có mã
+if (isset($_SESSION['coupon']) && $grand_total > 0) {
+    $coupon = $_SESSION['coupon'];
+    
+    // Kiểm tra điều kiện đơn hàng tối thiểu
+    if ($grand_total >= $coupon['min_order']) {
+        if ($coupon['discount_type'] == 'percentage') {
+            $discount = ($grand_total * $coupon['discount_value']) / 100;
+            
+            // Áp dụng giới hạn giảm giá tối đa nếu có
+            if ($coupon['max_discount'] !== null && $discount > $coupon['max_discount']) {
+                $discount = $coupon['max_discount'];
+            }
+        } else {
+            $discount = $coupon['discount_value'];
+        }
+        
+        // Đảm bảo giảm giá không vượt quá tổng tiền
+        if ($discount > $grand_total) {
+            $discount = $grand_total;
+        }
+    } else {
+        $warning_msg[] = 'Mã giảm giá yêu cầu đơn hàng tối thiểu $' . number_format($coupon['min_order']) . '. Vui lòng mua thêm sản phẩm!';
+        unset($_SESSION['coupon']);
+    }
+}
+
+$final_total = $grand_total - $discount;
 ?>
 <style type="text/css">
 <?php include 'style.css'; ?>
+/* Thêm CSS cho phần giảm giá */
+.coupon-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.coupon-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.coupon-form input[type="text"] {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.coupon-form input[type="text"]:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+}
+
+.coupon-form .btn {
+    padding: 12px 25px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: 500;
+}
+
+.coupon-form .btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.coupon-info {
+    font-size: 13px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.coupon-info strong {
+    color: #333;
+}
+
+.applied-coupon {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.applied-coupon p {
+    margin: 0;
+    color: #155724;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.remove-coupon .btn {
+    padding: 8px 15px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.remove-coupon .btn:hover {
+    background: #c82333;
+}
+
+.total-breakdown {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.total-breakdown p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.8rem 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+}
+
+.total-breakdown .discount {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.total-breakdown .final-total {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #28a745;
+    border-top: 2px solid #28a745;
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
+}
+
+.cart-total .button {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.cart-total .button .btn {
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: all 0.3s;
+    font-weight: 500;
+    text-align: center;
+    min-width: 150px;
+}
+
+.cart-total .button .btn:first-child {
+    background: #6c757d;
+    color: white;
+    border: none;
+}
+
+.cart-total .button .btn:first-child:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+.cart-total .button .btn:last-child {
+    background: #28a745;
+    color: white;
+}
+
+.cart-total .button .btn:last-child:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .coupon-form {
+        flex-direction: column;
+    }
+    
+    .coupon-form input[type="text"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .applied-coupon {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .cart-total .button {
+        flex-direction: column;
+    }
+    
+    .cart-total .button .btn {
+        width: 100%;
+    }
+}
 </style>
 
 <!DOCTYPE html>
@@ -89,7 +361,6 @@ if (isset($_POST['empty_cart'])) {
         <h1 class="title">Sản phẩm đã thêm vào giỏ hàng</h1>
         <div class="box-container">
             <?php
-            $grand_total = 0;
             $select_cart = $conn->prepare("SELECT * FROM cart WHERE user_id = ?");
             $select_cart->execute([$user_id]);
 
@@ -100,7 +371,7 @@ if (isset($_POST['empty_cart'])) {
                     
                     if ($select_products->rowCount() > 0) {
                         $fetch_products = $select_products->fetch(PDO::FETCH_ASSOC);
-                        $sub_total = $fetch_cart['qty'] * $fetch_products['price']; // 🔹 Tính trước khi echo
+                        $sub_total = $fetch_cart['qty'] * $fetch_products['price'];
                         ?>
                         <form method="post" action="" class="box">
                             <input type="hidden" name="cart_id" value="<?= htmlspecialchars($fetch_cart['id']); ?>">
@@ -115,7 +386,6 @@ if (isset($_POST['empty_cart'])) {
                             <button type="submit" name="delete_item" class="btn" onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">Xóa</button>
                         </form>
                         <?php
-                        $grand_total += $sub_total;
                     }
                 }
             } else {
@@ -126,7 +396,48 @@ if (isset($_POST['empty_cart'])) {
 
         <?php if ($grand_total > 0) { ?>
         <div class="cart-total">
-            <p>Tổng số tiền phải thanh toán: <span>$<?= number_format($grand_total); ?>/-</span></p>
+            <!-- Phần mã giảm giá -->
+            <div class="coupon-section">
+                <?php if (!isset($_SESSION['coupon'])) { ?>
+                    <form method="post" class="coupon-form">
+                        <input type="text" name="coupon_code" placeholder="Nhập mã giảm giá của bạn" required>
+                        <button type="submit" name="apply_coupon" class="btn">Áp dụng mã</button>
+                    </form>
+                    <div class="coupon-info">
+                        <strong>Mã giảm giá có sẵn:</strong> 
+                        WELCOME10 (10% toàn bộ đơn hàng), 
+                        FREESHIP5 ($5 cho đơn từ $30), 
+                        SAVE20 (20% cho đơn từ $50)
+                    </div>
+                <?php } else { ?>
+                    <div class="applied-coupon">
+                        <p>
+                            ✅ Mã giảm giá: <strong><?= $_SESSION['coupon']['code']; ?></strong> 
+                            (<?= $_SESSION['coupon']['discount_type'] == 'percentage' ? 
+                            $_SESSION['coupon']['discount_value'] . '%' : 
+                            '$' . $_SESSION['coupon']['discount_value']; ?>)
+                        </p>
+                        <form method="post" class="remove-coupon">
+                            <button type="submit" name="remove_coupon" class="btn">Xóa mã</button>
+                        </form>
+                    </div>
+                <?php } ?>
+            </div>
+
+            <!-- Phần tổng kết tiền -->
+            <div class="total-breakdown">
+                <p>Tổng tiền hàng: <span>$<?= number_format($grand_total, 2); ?></span></p>
+                
+                <?php if ($discount > 0) { ?>
+                    <p class="discount">
+                        Giảm giá (<?= $_SESSION['coupon']['code']; ?>): 
+                        <span>-$<?= number_format($discount, 2); ?></span>
+                    </p>
+                <?php } ?>
+                
+                <p class="final-total">Tổng thanh toán: <span>$<?= number_format($final_total, 2); ?></span></p>
+            </div>
+
             <div class="button">
                 <form method="post">
                     <button type="submit" name="empty_cart" class="btn" onclick="return confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')">Xóa Giỏ Hàng</button>
