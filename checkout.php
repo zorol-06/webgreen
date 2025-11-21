@@ -15,6 +15,43 @@ if (isset($_POST['logout'])) {
     exit;
 }
 
+// 🔹 Xử lý áp dụng mã giảm giá trong trang thanh toán
+if (isset($_POST['apply_coupon_checkout'])) {
+    $coupon_code = filter_var($_POST['coupon_code'], FILTER_SANITIZE_STRING);
+    
+    // Kiểm tra mã giảm giá trong database
+    $current_date = date('Y-m-d H:i:s');
+    $verify_coupon = $conn->prepare("SELECT * FROM coupons WHERE code = ? AND status = 'active' AND start_date <= ? AND expire_date >= ?");
+    $verify_coupon->execute([$coupon_code, $current_date, $current_date]);
+    
+    if ($verify_coupon->rowCount() > 0) {
+        $coupon = $verify_coupon->fetch(PDO::FETCH_ASSOC);
+        
+        // Kiểm tra giới hạn sử dụng
+        if ($coupon['usage_limit'] !== null && $coupon['used_count'] >= $coupon['usage_limit']) {
+            $warning_msg[] = 'Mã giảm giá đã hết lượt sử dụng!';
+        } else {
+            $_SESSION['coupon'] = [
+                'id' => $coupon['id'],
+                'code' => $coupon['code'],
+                'discount_type' => $coupon['discount_type'],
+                'discount_value' => $coupon['discount_value'],
+                'min_order' => $coupon['min_order'],
+                'max_discount' => $coupon['max_discount']
+            ];
+            $success_msg[] = 'Áp dụng mã giảm giá thành công!';
+        }
+    } else {
+        $warning_msg[] = 'Mã giảm giá không hợp lệ hoặc đã hết hạn!';
+    }
+}
+
+// 🔹 Xóa mã giảm giá trong trang thanh toán
+if (isset($_POST['remove_coupon_checkout'])) {
+    unset($_SESSION['coupon']);
+    $success_msg[] = 'Đã xóa mã giảm giá!';
+}
+
 // 🔹 Xử lý đặt hàng khi người dùng bấm Place Order
 if (isset($_POST['place_order'])) {
     if (empty($user_id)) {
@@ -49,6 +86,11 @@ if (isset($_POST['place_order'])) {
             // Ghép địa chỉ đầy đủ
             $address = $flat . ', ' . $street . ', ' . $city . ', ' . $country . ' - ' . $pincode;
             
+            // Tính toán tổng tiền và giảm giá
+            $grand_total = 0;
+            $discount = 0;
+            $coupon_code = null;
+            
             if (isset($_GET['get_id'])) {
                 // Đặt hàng trực tiếp một sản phẩm
                 $product_id = $_GET['get_id'];
@@ -57,9 +99,71 @@ if (isset($_POST['place_order'])) {
                 $product = $select_product->fetch(PDO::FETCH_ASSOC);
                 
                 if ($product) {
-                    // 🔹 Insert với defaults (status='pending', payment_status='unpaid')
-                    $insert_order = $conn->prepare("INSERT INTO orders (user_id, name, number, email, method, address_type, address, product_id, price, qty, status, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid')");
-                    $insert_order->execute([$user_id, $name, $number, $email, $method, $address_type, $address, $product_id, $product['price'], 1]);
+                    $grand_total = $product['price'];
+                }
+            } else {
+                // Đặt hàng từ giỏ hàng
+                $select_cart = $conn->prepare("SELECT * FROM cart WHERE user_id = ?");
+                $select_cart->execute([$user_id]);
+                
+                if ($select_cart->rowCount() > 0) {
+                    while ($cart_item = $select_cart->fetch(PDO::FETCH_ASSOC)) {
+                        $select_product = $conn->prepare("SELECT * FROM products WHERE id = ? AND status = 'active'");
+                        $select_product->execute([$cart_item['product_id']]);
+                        $product = $select_product->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($product) {
+                            $grand_total += $product['price'] * $cart_item['qty'];
+                        }
+                    }
+                }
+            }
+            
+            // Tính toán giảm giá nếu có mã
+            if (isset($_SESSION['coupon']) && $grand_total > 0) {
+                $coupon = $_SESSION['coupon'];
+                $coupon_code = $coupon['code'];
+                
+                // Kiểm tra điều kiện đơn hàng tối thiểu
+                if ($grand_total >= $coupon['min_order']) {
+                    if ($coupon['discount_type'] == 'percent') {
+                        $discount = ($grand_total * $coupon['discount_value']) / 100;
+                        
+                        // Áp dụng giới hạn giảm giá tối đa nếu có
+                        if ($coupon['max_discount'] !== null && $discount > $coupon['max_discount']) {
+                            $discount = $coupon['max_discount'];
+                        }
+                    } else {
+                        $discount = $coupon['discount_value'];
+                    }
+                    
+                    // Đảm bảo giảm giá không vượt quá tổng tiền
+                    if ($discount > $grand_total) {
+                        $discount = $grand_total;
+                    }
+                }
+            }
+            
+            $final_total = $grand_total - $discount;
+            
+            if (isset($_GET['get_id'])) {
+                // Đặt hàng trực tiếp một sản phẩm
+                $product_id = $_GET['get_id'];
+                $select_product = $conn->prepare("SELECT * FROM products WHERE id = ? AND status = 'active'");
+                $select_product->execute([$product_id]);
+                $product = $select_product->fetch(PDO::FETCH_ASSOC);
+                
+                if ($product) {
+                    // 🔹 Insert với thông tin mã giảm giá
+                    $insert_order = $conn->prepare("INSERT INTO orders (user_id, name, number, email, method, address_type, address, product_id, price, qty, status, payment_status, coupon_code, discount_amount, final_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', ?, ?, ?)");
+                    $insert_order->execute([$user_id, $name, $number, $email, $method, $address_type, $address, $product_id, $product['price'], 1, $coupon_code, $discount, $final_total]);
+                    
+                    // Cập nhật số lần sử dụng mã giảm giá
+                    if ($coupon_code) {
+                        $update_used_count = $conn->prepare("UPDATE coupons SET used_count = used_count + 1 WHERE code = ?");
+                        $update_used_count->execute([$coupon_code]);
+                    }
+                    
                     $success_msg[] = 'Đơn hàng đã được đặt thành công!';
                 } else {
                     $warning_msg[] = 'Sản phẩm không tồn tại!';
@@ -76,15 +180,35 @@ if (isset($_POST['place_order'])) {
                         $product = $select_product->fetch(PDO::FETCH_ASSOC);
                         
                         if ($product) {
-                            // Insert từng item từ cart
-                            $insert_order = $conn->prepare("INSERT INTO orders (user_id, name, number, email, method, address_type, address, product_id, price, qty, status, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid')");
-                            $insert_order->execute([$user_id, $name, $number, $email, $method, $address_type, $address, $cart_item['product_id'], $product['price'], $cart_item['qty']]);
+                            // Tính subtotal cho từng sản phẩm
+                            $subtotal = $product['price'] * $cart_item['qty'];
+                            $item_discount = 0;
+                            
+                            // Tính giảm giá tỷ lệ cho từng sản phẩm nếu có mã
+                            if ($discount > 0) {
+                                $item_discount = ($subtotal / $grand_total) * $discount;
+                            }
+                            
+                            $item_final_price = $subtotal - $item_discount;
+                            
+                            // Insert từng item từ cart với thông tin mã giảm giá
+                            $insert_order = $conn->prepare("INSERT INTO orders (user_id, name, number, email, method, address_type, address, product_id, price, qty, status, payment_status, coupon_code, discount_amount, final_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', ?, ?, ?)");
+                            $insert_order->execute([$user_id, $name, $number, $email, $method, $address_type, $address, $cart_item['product_id'], $product['price'], $cart_item['qty'], $coupon_code, $item_discount, $item_final_price]);
                         }
+                    }
+                    
+                    // Cập nhật số lần sử dụng mã giảm giá
+                    if ($coupon_code) {
+                        $update_used_count = $conn->prepare("UPDATE coupons SET used_count = used_count + 1 WHERE code = ?");
+                        $update_used_count->execute([$coupon_code]);
                     }
                     
                     // Xóa giỏ hàng sau khi đặt hàng thành công
                     $delete_cart = $conn->prepare("DELETE FROM cart WHERE user_id = ?");
                     $delete_cart->execute([$user_id]);
+                    
+                    // Xóa mã giảm giá khỏi session sau khi đặt hàng
+                    unset($_SESSION['coupon']);
                     
                     $success_msg[] = 'Đơn hàng đã được đặt thành công!';
                 } else {
@@ -94,9 +218,207 @@ if (isset($_POST['place_order'])) {
         }
     }
 }
+
+// Tính tổng tiền và giảm giá để hiển thị
+$grand_total = 0;
+$discount = 0;
+$final_total = 0;
+
+if (isset($_GET['get_id'])) {
+    // Xử lý khi checkout một sản phẩm trực tiếp
+    $select_get = $conn->prepare("SELECT * FROM products WHERE id = ? AND status = 'active'");
+    $select_get->execute([$_GET['get_id']]);
+    $fetch_get = $select_get->fetch(PDO::FETCH_ASSOC);
+    
+    if ($fetch_get) {
+        $grand_total = $fetch_get['price'];
+    }
+} else {
+    // Xử lý khi checkout từ Giỏ hàng
+    $select_cart = $conn->prepare("SELECT * FROM cart WHERE user_id = ?");
+    $select_cart->execute([$user_id]);
+
+    if ($select_cart->rowCount() > 0) {
+        while ($fetch_cart = $select_cart->fetch(PDO::FETCH_ASSOC)) {
+            $select_product = $conn->prepare("SELECT * FROM products WHERE id = ? AND status = 'active'");
+            $select_product->execute([$fetch_cart['product_id']]);
+            $fetch_product = $select_product->fetch(PDO::FETCH_ASSOC);
+
+            if ($fetch_product) {
+                $sub_total = $fetch_cart['qty'] * $fetch_product['price'];
+                $grand_total += $sub_total;
+            }
+        }
+    }
+}
+
+// Tính toán giảm giá nếu có mã
+if (isset($_SESSION['coupon']) && $grand_total > 0) {
+    $coupon = $_SESSION['coupon'];
+    
+    // Kiểm tra điều kiện đơn hàng tối thiểu
+    if ($grand_total >= $coupon['min_order']) {
+        if ($coupon['discount_type'] == 'percent') {
+            $discount = ($grand_total * $coupon['discount_value']) / 100;
+            
+            // Áp dụng giới hạn giảm giá tối đa nếu có
+            if ($coupon['max_discount'] !== null && $discount > $coupon['max_discount']) {
+                $discount = $coupon['max_discount'];
+            }
+        } else {
+            $discount = $coupon['discount_value'];
+        }
+        
+        // Đảm bảo giảm giá không vượt quá tổng tiền
+        if ($discount > $grand_total) {
+            $discount = $grand_total;
+        }
+    } else {
+        $warning_msg[] = 'Mã giảm giá yêu cầu đơn hàng tối thiểu $' . number_format($coupon['min_order']) . '. Vui lòng mua thêm sản phẩm!';
+        unset($_SESSION['coupon']);
+    }
+}
+
+$final_total = $grand_total - $discount;
+
+// Lấy danh sách mã giảm giá hợp lệ
+$current_date = date('Y-m-d H:i:s');
+$select_valid_coupons = $conn->prepare("SELECT * FROM coupons WHERE status = 'active' AND start_date <= ? AND expire_date >= ? AND (usage_limit IS NULL OR used_count < usage_limit) ORDER BY discount_value DESC");
+$select_valid_coupons->execute([$current_date, $current_date]);
+$valid_coupons = $select_valid_coupons->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <style type="text/css">
-  <?php include 'style.css'; ?>
+<?php include 'style.css'; ?>
+/* CSS cho phần mã giảm giá trong checkout */
+.coupon-section-checkout {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.coupon-form-checkout {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.coupon-select-checkout {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.coupon-select-checkout:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+}
+
+.coupon-form-checkout .btn {
+    padding: 12px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: 500;
+}
+
+.coupon-form-checkout .btn:hover {
+    background: #218838;
+}
+
+.applied-coupon-checkout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.applied-coupon-checkout p {
+    margin: 0;
+    color: #155724;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.remove-coupon-checkout .btn {
+    padding: 8px 15px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.remove-coupon-checkout .btn:hover {
+    background: #c82333;
+}
+
+/* CSS cho phần tổng kết tiền trong checkout */
+.summary .total-breakdown {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.summary .total-breakdown p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.8rem 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+}
+
+.summary .total-breakdown .discount {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.summary .total-breakdown .final-total {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #28a745;
+    border-top: 2px solid #28a745;
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
+}
+
+/* Responsive cho checkout */
+@media (max-width: 768px) {
+    .coupon-form-checkout {
+        flex-direction: column;
+    }
+    
+    .coupon-select-checkout {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .applied-coupon-checkout {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+}
 </style>
 <!DOCTYPE html>
 <html lang="vi">
@@ -119,34 +441,30 @@ if (isset($_POST['place_order'])) {
         <div class="title">
             <img src="img/download.png" alt="Logo Green Coffee" class="logo">
             <h1>Tóm tắt thanh toán</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quas aperiam ex neque eligendi, adipisci iste veritatis...</p>
+            <p>Hoàn tất đơn hàng của bạn với thông tin thanh toán và giao hàng</p>
         </div>
 
         <div class="row">
 
-            <!-- MY BAG: đặt trước Billing Details -->
+            <!-- Phần tóm tắt đơn hàng -->
            <div class="summary">
     <h3>Giỏ hàng của tôi</h3>
     <div class="box-container">
         <?php
-        $grand_total = 0;
-        
         if (isset($_GET['get_id'])) {
-            // Xử lý khi checkout một sản phẩm trực tiếp (qua get_id)
+            // Xử lý khi checkout một sản phẩm trực tiếp
             $select_get = $conn->prepare("SELECT * FROM products WHERE id = ? AND status = 'active'");
             $select_get->execute([$_GET['get_id']]);
             $fetch_get = $select_get->fetch(PDO::FETCH_ASSOC);
             
             if ($fetch_get) {
                 $quantity = 1; 
-                $sub_total = $fetch_get['price'] * $quantity;
-                $grand_total += $sub_total;
                 ?>
                 <div class="flex">
                     <img src="img/<?= htmlspecialchars($fetch_get['image']); ?>" alt="<?= htmlspecialchars($fetch_get['name']); ?>" class="image">
                     <div>
                         <h3 class="name"><?= htmlspecialchars($fetch_get['name']); ?></h3>
-                        <p class="price"><?= number_format($fetch_get['price']); ?> x <?= $quantity; ?></p> 
+                        <p class="price">$<?= number_format($fetch_get['price']); ?> x <?= $quantity; ?></p> 
                     </div>
                 </div>
                 <?php
@@ -154,7 +472,7 @@ if (isset($_POST['place_order'])) {
                 echo '<p class="empty">Sản phẩm không tồn tại!</p>';
             }
         } else {
-            // Xử lý khi checkout từ Giỏ hàng (cart)
+            // Xử lý khi checkout từ Giỏ hàng
             $select_cart = $conn->prepare("SELECT * FROM cart WHERE user_id = ?");
             $select_cart->execute([$user_id]);
 
@@ -168,14 +486,12 @@ if (isset($_POST['place_order'])) {
                         $fetch_product = $select_product->fetch(PDO::FETCH_ASSOC);
 
                         if ($fetch_product) {
-                            $sub_total = $fetch_cart['qty'] * $fetch_product['price'];
-                            $grand_total += $sub_total;
                             ?>
                             <div class="flex">
                                 <img src="img/<?= htmlspecialchars($fetch_product['image']); ?>" alt="<?= htmlspecialchars($fetch_product['name']); ?>" class="image">
                                 <div>
                                     <h3 class="name"><?= htmlspecialchars($fetch_product['name']); ?></h3>
-                                    <p class="price"><?= number_format($fetch_product['price']); ?> x <?= $fetch_cart['qty']; ?></p>
+                                    <p class="price">$<?= number_format($fetch_product['price']); ?> x <?= $fetch_cart['qty']; ?></p>
                                 </div>
                             </div>
                             <?php
@@ -188,8 +504,69 @@ if (isset($_POST['place_order'])) {
         }
         ?>
     </div>
-    <div class="grand-total"><span>Tổng số tiền phải thanh toán:</span>$<?= number_format($grand_total); ?>/-</div>
+
+    <!-- Phần mã giảm giá trong checkout -->
+    <div class="coupon-section-checkout">
+        <?php if (!isset($_SESSION['coupon'])) { ?>
+            <form method="post" class="coupon-form-checkout">
+                <select name="coupon_code" required class="coupon-select-checkout">
+                    <option value="">-- Chọn mã giảm giá --</option>
+                    <?php
+                    if (count($valid_coupons) > 0) {
+                        foreach ($valid_coupons as $coupon) {
+                            $discount_text = $coupon['discount_type'] == 'percent' 
+                                ? $coupon['discount_value'] . '%' 
+                                : '$' . number_format($coupon['discount_value']);
+                            
+                            $min_order_text = $coupon['min_order'] > 0 
+                                ? ' (Đơn tối thiểu: $' . number_format($coupon['min_order']) . ')' 
+                                : '';
+                                
+                            $max_discount_text = $coupon['max_discount'] > 0 && $coupon['discount_type'] == 'percent'
+                                ? ' (Tối đa: $' . number_format($coupon['max_discount']) . ')'
+                                : '';
+                            
+                            echo '<option value="' . htmlspecialchars($coupon['code']) . '">' . 
+                                 htmlspecialchars($coupon['code']) . ' - Giảm ' . $discount_text . 
+                                 $min_order_text . $max_discount_text . '</option>';
+                        }
+                    } else {
+                        echo '<option value="" disabled>-- Không có mã giảm giá khả dụng --</option>';
+                    }
+                    ?>
+                </select>
+                <button type="submit" name="apply_coupon_checkout" class="btn">Áp dụng mã</button>
+            </form>
+        <?php } else { ?>
+            <div class="applied-coupon-checkout">
+                <p>
+                    ✅ Mã giảm giá: <strong><?= $_SESSION['coupon']['code']; ?></strong> 
+                    (<?= $_SESSION['coupon']['discount_type'] == 'percent' ? 
+                    $_SESSION['coupon']['discount_value'] . '%' : 
+                    '$' . $_SESSION['coupon']['discount_value']; ?>)
+                </p>
+                <form method="post" class="remove-coupon-checkout">
+                    <button type="submit" name="remove_coupon_checkout" class="btn">Xóa mã</button>
+                </form>
+            </div>
+        <?php } ?>
+    </div>
+
+    <!-- Phần tổng kết tiền -->
+    <div class="total-breakdown">
+        <p>Tổng tiền hàng: <span>$<?= number_format($grand_total, 2); ?></span></p>
+        
+        <?php if ($discount > 0) { ?>
+            <p class="discount">
+                Giảm giá (<?= $_SESSION['coupon']['code']; ?>): 
+                <span>-$<?= number_format($discount, 2); ?></span>
+            </p>
+        <?php } ?>
+        
+        <p class="final-total">Tổng thanh toán: <span>$<?= number_format($final_total, 2); ?></span></p>
+    </div>
 </div>
+
             <!-- BILLING DETAILS FORM -->
             <form method="post">
                 <h3>Thông tin thanh toán</h3>
@@ -250,7 +627,7 @@ if (isset($_POST['place_order'])) {
                         </div>
                     </div>
                 </div>
-                <button type="submit" name="place_order" class="btn">Đặt hàng</button>
+                <button type="submit" name="place_order" class="btn">Đặt hàng - $<?= number_format($final_total, 2); ?></button>
             </form>
 
         </div>

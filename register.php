@@ -8,6 +8,9 @@ if (isset($_SESSION['user_id'])) {
     $user_id = '';
 }
 
+// 🔹 THÊM DÒNG NÀY - Include file chứa hàm sendMail
+include 'functions.php';
+
 // 🔹 Đăng ký tài khoản mới
 if (isset($_POST['submit'])) {
     $name = $_POST['name'] ?? '';
@@ -77,7 +80,149 @@ if (isset($_POST['submit'])) {
                 $insert->execute([$name, $email, $hashed_pass, $profile_image]);
 
                 if ($insert) {
-                    $success_msg[] = 'Đăng ký thành công! Bạn có thể đăng nhập ngay.';
+                    // 🔹 GỬI EMAIL THÔNG BÁO ĐĂNG KÝ THÀNH CÔNG
+                    $emailSubject = 'Chào mừng đến với Green Coffee!';
+                    
+                    $emailContent = "
+                        <html>
+                        <head>
+                            <style>
+                                body { 
+                                    font-family: Arial, sans-serif; 
+                                    line-height: 1.6;
+                                    color: #333;
+                                    max-width: 600px;
+                                    margin: 0 auto;
+                                    padding: 20px;
+                                }
+                                .header { 
+                                    background: linear-gradient(135deg, #2e7d32, #4caf50);
+                                    color: white; 
+                                    padding: 30px 20px; 
+                                    text-align: center; 
+                                    border-radius: 10px 10px 0 0;
+                                }
+                                .header h1 { 
+                                    margin: 0; 
+                                    font-size: 28px;
+                                }
+                                .content { 
+                                    padding: 30px 20px; 
+                                    background: #f9f9f9; 
+                                    border-left: 1px solid #ddd;
+                                    border-right: 1px solid #ddd;
+                                }
+                                .welcome-text {
+                                    font-size: 18px;
+                                    color: #2e7d32;
+                                    margin-bottom: 20px;
+                                }
+                                .user-info {
+                                    background: white;
+                                    padding: 20px;
+                                    border-radius: 8px;
+                                    border-left: 4px solid #4caf50;
+                                    margin: 20px 0;
+                                }
+                                .user-info ul {
+                                    margin: 0;
+                                    padding-left: 20px;
+                                }
+                                .user-info li {
+                                    margin-bottom: 8px;
+                                }
+                                .login-btn {
+                                    display: inline-block;
+                                    background: linear-gradient(135deg, #2e7d32, #4caf50);
+                                    color: white; 
+                                    padding: 14px 30px; 
+                                    text-decoration: none; 
+                                    border-radius: 25px;
+                                    font-weight: bold;
+                                    margin: 20px 0;
+                                    text-align: center;
+                                }
+                                .footer { 
+                                    text-align: center; 
+                                    padding: 20px; 
+                                    font-size: 12px; 
+                                    color: #666;
+                                    background: #f1f1f1;
+                                    border-radius: 0 0 10px 10px;
+                                    border-left: 1px solid #ddd;
+                                    border-right: 1px solid #ddd;
+                                    border-bottom: 1px solid #ddd;
+                                }
+                                .highlight {
+                                    background: #e8f5e9;
+                                    padding: 15px;
+                                    border-radius: 8px;
+                                    margin: 15px 0;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='header'>
+                                <h1>☕ Green Coffee</h1>
+                                <p style='margin: 10px 0 0 0; opacity: 0.9;'>Thế giới cà phê nguyên chất</p>
+                            </div>
+                            <div class='content'>
+                                <div class='welcome-text'>
+                                    <strong>Xin chào $name!</strong>
+                                </div>
+                                
+                                <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>Green Coffee</strong> - nơi mang đến những hạt cà phê chất lượng nhất!</p>
+                                
+                                <div class='user-info'>
+                                    <p><strong>Thông tin tài khoản của bạn:</strong></p>
+                                    <ul>
+                                        <li><strong>👤 Tên:</strong> $name</li>
+                                        <li><strong>📧 Email:</strong> $email</li>
+                                        <li><strong>📅 Ngày đăng ký:</strong> " . date('d/m/Y H:i:s') . "</li>
+                                        <li><strong>🔐 Trạng thái:</strong> Đã kích hoạt</li>
+                                    </ul>
+                                </div>
+
+                                <div class='highlight'>
+                                    <p><strong>🎉 Chào mừng bạn đến với cộng đồng Green Coffee!</strong></p>
+                                    <p>Bây giờ bạn có thể:</p>
+                                    <ul>
+                                        <li>🛒 Mua sắm các sản phẩm cà phê đặc biệt</li>
+                                        <li>⭐ Đánh giá và nhận xét sản phẩm</li>
+                                        <li>📦 Theo dõi đơn hàng dễ dàng</li>
+                                        <li>🎁 Nhận các ưu đãi đặc biệt</li>
+                                    </ul>
+                                </div>
+
+                                <div style='text-align: center; margin: 30px 0;'>
+                                    <a href='http://localhost/Green-Coffee/login.php' class='login-btn'>
+                                        🚀 Bắt đầu mua sắm ngay
+                                    </a>
+                                </div>
+
+                                <p>Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với chúng tôi qua email này hoặc gọi hotline: <strong>1900 1234</strong></p>
+                                
+                                <p>Trân trọng,<br>
+                                <strong>Đội ngũ Green Coffee</strong></p>
+                            </div>
+                            <div class='footer'>
+                                <p>© " . date('Y') . " <strong>Green Coffee</strong>. All rights reserved.</p>
+                                <p>Địa chỉ: 123 Đường Cà Phê, Quận 1, TP.HCM</p>
+                                <p>Hotline: 1900 1234 | Email: support@greencoffee.com</p>
+                                <p><em>Đây là email tự động, vui lòng không trả lời.</em></p>
+                            </div>
+                        </body>
+                        </html>
+                    ";
+
+                    // Gọi hàm sendMail để gửi email thông báo
+                    $emailSent = sendMail($email, $emailSubject, $emailContent);
+
+                    if ($emailSent) {
+                        $success_msg[] = 'Đăng ký thành công! Email xác nhận đã được gửi tới bạn.';
+                    } else {
+                        $success_msg[] = 'Đăng ký thành công! (Có lỗi khi gửi email xác nhận)';
+                    }
                 } else {
                     $message[] = 'Đăng ký thất bại, vui lòng thử lại.';
                 }
