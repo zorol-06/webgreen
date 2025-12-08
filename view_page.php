@@ -51,7 +51,7 @@ if (isset($_POST['add_to_wishlist'])) {
     }
 }
 
-// 🧩 Thêm sản phẩm vào Giỏ hàng
+//  Thêm sản phẩm vào Giỏ hàng
 if (isset($_POST['add_to_cart'])) {
     if ($user_id == '') {
         header("location: login.php");
@@ -127,7 +127,7 @@ if (isset($_POST['add_to_cart'])) {
       <form method="post">
         <img src="img/<?= htmlspecialchars($fetch_product['image']); ?>" alt="<?= htmlspecialchars($fetch_product['name']); ?>">
         <div class="detail">
-          <div class="price">Giá: $<?= number_format($fetch_product['price']); ?></div> <!-- 🔹 Sửa: Format giá dễ đọc -->
+          <div class="price">Giá: <?= number_format($fetch_product['price']); ?> VND</div> <!-- 🔹 Sửa: Format giá dễ đọc -->
           <div class="name"><?= htmlspecialchars($fetch_product['name']); ?></div>
           <div class="desc">
             <p><?= htmlspecialchars($fetch_product['product_detail']); ?></p>

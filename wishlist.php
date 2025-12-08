@@ -20,7 +20,7 @@ if (isset($_POST['logout'])) {
     exit;
 }
 
-// 🧩 Thêm sản phẩm từ wishlist vào giỏ hàng
+//  Thêm sản phẩm từ wishlist vào giỏ hàng
 if (isset($_POST['add_to_cart'])) {
     $product_id = $_POST['product_id'];
 
@@ -47,7 +47,7 @@ if (isset($_POST['add_to_cart'])) {
     }
 }
 
-// 🧩 Xóa item khỏi wishlist
+// Xóa item khỏi wishlist
 if (isset($_POST['delete_item'])) {
     $wishlist_id = $_POST['wishlist_id'];
     $wishlist_id = filter_var($wishlist_id, FILTER_SANITIZE_STRING);
@@ -112,7 +112,7 @@ if (isset($_POST['delete_item'])) {
                                 <h3 class="name"><?= htmlspecialchars($fetch_products['name']); ?></h3>
                                 <input type="hidden" name="product_id" value="<?= $fetch_products['id']; ?>">
                                 <div class="flex">
-                                    <p class="price">Giá $<?= number_format($fetch_products['price']); ?>/-</p>
+                                    <p class="price">Giá: <?= number_format($fetch_products['price']); ?> VND</p>
                                 </div>
                                 <a href="checkout.php?get_id=<?= $fetch_products['id']; ?>" class="btn">Mua ngay</a>
                             </form>

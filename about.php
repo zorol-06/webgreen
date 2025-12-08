@@ -16,7 +16,7 @@ if (isset($_POST['logout'])) {
 }
 ?>
 <style type="text/css">
-  <?php include 'style.css'; ?>
+  <?php include 'style.css'; ?> 
 </style>
 <!DOCTYPE html>
 <html lang="vi">
@@ -141,21 +141,22 @@ if (isset($_POST['logout'])) {
     ");
     $select_testimonials->execute();
     $testimonials = $select_testimonials->fetchAll(PDO::FETCH_ASSOC);
-    
-    if (!empty($testimonials)) {
-        foreach ($testimonials as $index => $testimonial): 
-            // 🔹 Lấy ảnh từ profile_image nếu có, fallback placeholder theo index
-            $img_src = !empty($testimonial['profile_image']) ? $testimonial['profile_image'] : "img/0" . ($index + 1) . ".jpg";
-            $active_class = ($index == 0) ? 'active' : ''; // Chỉ slide đầu active
-    ?>
-            <div class="testimonial-item <?= $active_class; ?>">
-                <img src="<?= htmlspecialchars($img_src); ?>" alt="<?= htmlspecialchars($testimonial['name']); ?>">
-                <h1><?= htmlspecialchars($testimonial['name']); ?></h1>
-                <p><?= htmlspecialchars($testimonial['message']); ?></p>
-            </div>
-    <?php 
-        endforeach; 
-    } else {
+ if (!empty($testimonials)) {
+    foreach ($testimonials as $index => $testimonial): 
+        $img_src = !empty($testimonial['profile_image']) ? $testimonial['profile_image'] : "img/0" . ($index + 1) . ".jpg";
+        $active_class = ($index == 0) ? 'active' : '';
+?>
+        <div class="testimonial-item <?= $active_class; ?>">
+            <img src="<?= htmlspecialchars($img_src); ?>" 
+                 alt="<?= htmlspecialchars($testimonial['name']); ?>"
+                 style="width: 100px; height: 100px; object-fit: cover;">
+            <h1><?= htmlspecialchars($testimonial['name']); ?></h1>
+            <p><?= htmlspecialchars($testimonial['message']); ?></p>
+        </div>
+<?php 
+    endforeach; 
+} 
+   else {
         // Fallback nếu không có data (hiển thị static như cũ)
         echo '<div class="testimonial-item active">
                 <img src="img/01.jpg" alt="Sara Smith">
