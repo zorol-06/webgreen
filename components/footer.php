@@ -50,8 +50,8 @@
                 <p>Theo dõi chúng tôi qua</p>
                 <div class="social-links">
                     <a href="https://instagram.com" target="_blank"><i class="bx bxl-instagram"></i></a>
-                    <a href="https://twitter.com" target="_blank"><i class="bx bxl-twitter"></i></a>
-                    <a href="https://behance.net" target="_blank"><i class="bx bxl-behance"></i></a>
+                    <a href="https://facebook.com" target="_blank"><i class="bx bxl-facebook"></i></a>
+                    <a href="https://telegram.org" target="_blank"><i class="bx bxl-telegram"></i></a>
                     <a href="https://youtube.com" target="_blank"><i class="bx bxl-youtube"></i></a>
                     <a href="https://wa.me" target="_blank"><i class="bx bxl-whatsapp"></i></a>
                 </div>

@@ -464,7 +464,7 @@ $valid_coupons = $select_valid_coupons->fetchAll(PDO::FETCH_ASSOC);
                     <img src="img/<?= htmlspecialchars($fetch_get['image']); ?>" alt="<?= htmlspecialchars($fetch_get['name']); ?>" class="image">
                     <div>
                         <h3 class="name"><?= htmlspecialchars($fetch_get['name']); ?></h3>
-                        <p class="price">$<?= number_format($fetch_get['price']); ?> x <?= $quantity; ?></p> 
+                        <p class="price"><?= number_format($fetch_get['price']); ?> x <?= $quantity; ?></p> 
                     </div>
                 </div>
                 <?php
@@ -516,14 +516,14 @@ $valid_coupons = $select_valid_coupons->fetchAll(PDO::FETCH_ASSOC);
                         foreach ($valid_coupons as $coupon) {
                             $discount_text = $coupon['discount_type'] == 'percent' 
                                 ? $coupon['discount_value'] . '%' 
-                                : '$' . number_format($coupon['discount_value']);
+                                : '' . number_format($coupon['discount_value']). ' VND';
                             
                             $min_order_text = $coupon['min_order'] > 0 
-                                ? ' (Đơn tối thiểu: $' . number_format($coupon['min_order']) . ')' 
+                                ? ' (Đơn tối thiểu: VND' . number_format($coupon['min_order']) . ')' 
                                 : '';
                                 
                             $max_discount_text = $coupon['max_discount'] > 0 && $coupon['discount_type'] == 'percent'
-                                ? ' (Tối đa: $' . number_format($coupon['max_discount']) . ')'
+                                ? ' (Tối đa: VND' . number_format($coupon['max_discount']) . ')'
                                 : '';
                             
                             echo '<option value="' . htmlspecialchars($coupon['code']) . '">' . 
@@ -543,7 +543,7 @@ $valid_coupons = $select_valid_coupons->fetchAll(PDO::FETCH_ASSOC);
                     ✅ Mã giảm giá: <strong><?= $_SESSION['coupon']['code']; ?></strong> 
                     (<?= $_SESSION['coupon']['discount_type'] == 'percent' ? 
                     $_SESSION['coupon']['discount_value'] . '%' : 
-                    '$' . $_SESSION['coupon']['discount_value']; ?>)
+                    '' . $_SESSION['coupon']['discount_value']. ' VND'; ?>)
                 </p>
                 <form method="post" class="remove-coupon-checkout">
                     <button type="submit" name="remove_coupon_checkout" class="btn">Xóa mã</button>
@@ -554,16 +554,16 @@ $valid_coupons = $select_valid_coupons->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Phần tổng kết tiền -->
     <div class="total-breakdown">
-        <p>Tổng tiền hàng: <span>$<?= number_format($grand_total, 2); ?></span></p>
+        <p>Tổng tiền hàng: <span><?= number_format($grand_total,); ?>VND</span></p>
         
         <?php if ($discount > 0) { ?>
             <p class="discount">
                 Giảm giá (<?= $_SESSION['coupon']['code']; ?>): 
-                <span>-$<?= number_format($discount, 2); ?></span>
+                <span><?= number_format($discount,); ?> VND</span>
             </p>
         <?php } ?>
         
-        <p class="final-total">Tổng thanh toán: <span>$<?= number_format($final_total, 2); ?></span></p>
+        <p class="final-total">Tổng thanh toán: <span><?= number_format($final_total, ); ?>VND</span></p>
     </div>
 </div>
 
@@ -627,7 +627,7 @@ $valid_coupons = $select_valid_coupons->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </div>
                 </div>
-                <button type="submit" name="place_order" class="btn">Đặt hàng - $<?= number_format($final_total, 2); ?></button>
+                <button type="submit" name="place_order" class="btn">Đặt hàng <?= number_format($final_total, ); ?> VND</button>
             </form>
 
         </div>

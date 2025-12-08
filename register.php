@@ -195,7 +195,7 @@ if (isset($_POST['submit'])) {
                                 </div>
 
                                 <div style='text-align: center; margin: 30px 0;'>
-                                    <a href='http://localhost/Green-Coffee/login.php' class='login-btn'>
+                                    <a href='http://localhost/greencoffee/' class='login-btn'>
                                         🚀 Bắt đầu mua sắm ngay
                                     </a>
                                 </div>
@@ -207,8 +207,8 @@ if (isset($_POST['submit'])) {
                             </div>
                             <div class='footer'>
                                 <p>© " . date('Y') . " <strong>Green Coffee</strong>. All rights reserved.</p>
-                                <p>Địa chỉ: 123 Đường Cà Phê, Quận 1, TP.HCM</p>
-                                <p>Hotline: 1900 1234 | Email: support@greencoffee.com</p>
+                                <p>Địa chỉ: 470 Đường Trần Đại Nghĩa, Quận Ngũ Hành Sơn, TP.Đà Nẵng</p>
+                                <p>Hotline: 0336965264 | Email: hoaiphm.24itb@vku.udn.vn</p>
                                 <p><em>Đây là email tự động, vui lòng không trả lời.</em></p>
                             </div>
                         </body>

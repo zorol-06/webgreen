@@ -86,7 +86,7 @@ if (isset($_POST['logout'])) {
           <img src="img/<?= $fetch_product['image']; ?>" alt="">
           <h3><?= $fetch_product['name']; ?></h3>
           <p>Số lượng: <span><?= $fetch_order['qty']; ?></span></p>
-          <p>Giá: <span>$<?= number_format($fetch_order['price']); ?></span></p>
+          <p>Giá: <span><?= number_format($fetch_order['price']); ?>VND</span></p>
           <p>Ngày đặt: <span><?= date('d/m/Y H:i', strtotime($fetch_order['date'])); ?></span></p>
           <p>Trạng thái: 
             <span style="color: <?= $status_color; ?>; font-weight: bold;">
@@ -99,7 +99,7 @@ if (isset($_POST['logout'])) {
             </span>
           </p>
 
-          <a href="order.php?get_id=<?= $fetch_order['id']; ?>" class="btn">Xem chi tiết</a>
+          <a href="order_status.php" class="btn">Xem chi tiết</a>
         </div>
         <?php
             }

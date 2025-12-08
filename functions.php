@@ -26,7 +26,7 @@ function sendMail($mailTo, $subject, $content) {
         $mail->Port       = 465;
 
         // Người nhận và người gửi
-        $mail->setFrom($username, 'Green Coffee'); // ⚠️ ĐÃ SỬA: Thay "Mailer" bằng tên thương hiệu
+        $mail->setFrom($username, 'Green Coffee'); // 
         $mail->addAddress($mailTo);
         
         // Thêm reply-to address

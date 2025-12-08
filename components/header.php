@@ -1,6 +1,6 @@
 <?php
 include 'components/connection.php';
-// 🔹 Kiểm tra session đã active chưa trước khi start (tránh duplicate error)
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -48,9 +48,12 @@ $total_cart_items = $count_cart_items->rowCount();
     <?php if (isset($_SESSION['user_id'])): ?>
         <p>Tên Người Dùng: <span><?= htmlspecialchars($_SESSION['user_name'] ?? ''); ?></span></p>
         <p>Email: <span><?= htmlspecialchars($_SESSION['user_email'] ?? ''); ?></span></p>
-        <form method="post">
-            <button type="submit" name="logout" class="logout-btn">Đăng Xuất</button>
-        </form>
+        <div class="user-actions">
+            <a href="profile.php" class="btn profile-btn">Xem Hồ Sơ</a>
+            <form method="post" class="logout-form">
+                <button type="submit" name="logout" class="logout-btn">Đăng Xuất</button>
+            </form>
+        </div>
     <?php else: ?>
         <a href="login.php" class="btn">Đăng Nhập</a>
         <a href="register.php" class="btn">Đăng Ký</a>

@@ -97,7 +97,7 @@ if (isset($_POST['cancel'])) {
             <p class="title"><i class="bi bi-calendar-fill"></i> <?= date('d/m/Y H:i', strtotime($fetch_order['date'])); ?></p> <!-- 🔹 Sửa: Format ngày tháng dễ đọc -->   
             <img src="img/<?= $fetch_product['image']; ?>" class="img" alt="">
             <h3 class="name"><?= $fetch_product['name']; ?></h3> 
-            <p class="price">Giá: $<?= number_format($price); ?> × <?= $qty; ?></p> <!-- 🔹 Sửa: Format giá dễ đọc -->  
+            <p class="price">Giá: <?= number_format($price); ?> × <?= $qty; ?> VND</p> <!-- 🔹 Sửa: Format giá dễ đọc -->  
             <p class="grand-total">Tổng thanh toán: <span>$<?= number_format($grand_total); ?></span></p> <!-- 🔹 Sửa: Format tổng tiền -->
           </div>
 
